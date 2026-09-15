@@ -68,6 +68,8 @@ Windows 是 `%USERPROFILE%\.codex\skills\hualong\`,也可以直接拷目录。
 
 这是实测里唯一有正向信号的环节:标题与正文的一致性(关键词覆盖率与点赞相关性 0.183),高于标题词法(0.09)和正文风格(0.14)。
 
+两个 skill 的端到端回归套件在 dianjing 仓库的 [`tests/`](https://github.com/MrSuiChuan/dianjing/tree/main/tests):3 个正样本 + 1 个反面样本,一次跑完正文体检、语料重合、承诺兑现、标题查重四项,并对比基线。改动任一 skill 后跑一次 `py -3 scripts/e2e_check.py` 就知道有没有改坏。
+
 自己检查草稿:
 
 ```bash

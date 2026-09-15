@@ -63,6 +63,42 @@ def extend(draft, other, seed):
     return best
 
 
+def scan(draft_text, corpus_dir, min_report=8):
+    """把草稿和语料目录逐篇比对, 返回 (最长重合长度, 命中列表, 比对篇数)。"""
+    draft = normalize(draft_text)
+    if len(draft) < NGRAM:
+        return 0, [], 0
+    draft_grams = grams(draft)
+    files = sorted(Path(corpus_dir).rglob("*.md"))
+    hits = []
+    for fp in files:
+        if fp.name.startswith("_") or fp.name.lower().startswith("readme"):
+            continue
+        other = normalize(fp.read_text(encoding="utf-8"))
+        if len(other) < NGRAM:
+            continue
+        common = draft_grams & grams(other)
+        if not common:
+            continue
+        longest = ""
+        for g in common:
+            span = extend(draft, other, g)
+            if len(span) > len(longest):
+                longest = span
+        if len(longest) >= min_report:
+            hits.append({"file": str(fp), "length": len(longest), "snippet": longest})
+    hits.sort(key=lambda h: -h["length"])
+    return (hits[0]["length"] if hits else 0), hits, len(files)
+
+
+def verdict_for(max_len, draft_len):
+    if max_len >= FAIL_LEN:
+        return "FAIL"
+    if max_len >= WARN_LEN or (draft_len and max_len / draft_len >= WARN_RATIO):
+        return "WARN"
+    return "PASS"
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("draft", help="草稿 markdown 路径")
@@ -84,37 +120,10 @@ def main():
     if len(draft) < NGRAM:
         print("[错误] 草稿太短, 无法比对")
         sys.exit(2)
-    draft_grams = grams(draft)
-
-    files = sorted(corpus_dir.rglob("*.md"))
-    hits = []
-    for fp in files:
-        if fp.name.startswith("_") or fp.name.lower().startswith("readme"):
-            continue
-        other = normalize(fp.read_text(encoding="utf-8"))
-        if len(other) < NGRAM:
-            continue
-        common = draft_grams & grams(other)
-        if not common:
-            continue
-        longest = ""
-        for g in common:
-            span = extend(draft, other, g)
-            if len(span) > len(longest):
-                longest = span
-        if len(longest) >= 8:
-            hits.append({"file": str(fp), "length": len(longest), "snippet": longest})
-
-    hits.sort(key=lambda h: -h["length"])
-    ratio = (hits[0]["length"] / len(draft)) if hits else 0.0
-    max_len = hits[0]["length"] if hits else 0
-
-    if max_len >= FAIL_LEN:
-        verdict = "FAIL"
-    elif max_len >= WARN_LEN or ratio >= WARN_RATIO:
-        verdict = "WARN"
-    else:
-        verdict = "PASS"
+    max_len, hits, n_files = scan(draft_raw, corpus_dir)
+    files = list(range(n_files))  # 仅用于下方计数输出
+    ratio = (max_len / len(draft)) if max_len else 0.0
+    verdict = verdict_for(max_len, len(draft))
 
     if args.json:
         print(json.dumps({"verdict": verdict, "max_match": max_len, "ratio": round(ratio, 5),
