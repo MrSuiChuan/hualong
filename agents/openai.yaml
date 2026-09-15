@@ -1,4 +1,4 @@
 interface:
   display_name: "画龙 · 长文写作"
   short_description: "写技术文与人文文两种长文,先问模式,再按段落节奏成稿"
-  default_prompt: "用 $hualong 帮我写一篇技术文,选题是……"
+  default_prompt: "用 $hualong 帮我写一篇技术文,选题是……;定稿后按 handoff 契约产出 title-brief,交给 $dianjing 出标题。"
