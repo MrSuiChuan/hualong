@@ -1,21 +1,30 @@
 # hualong · 画龙
 
-用「短句 + 长短交替」的长文节奏写中文长文(公众号 / 知乎),分**技术文**和**人文文**两种模式。
+用「短句 + 长短交替」的节奏写中文长文(公众号 / 知乎),分**技术文**和**人文文**两种模式,写完还有两道机器检查卡着。
 
-> 与 [dianjing](https://github.com/MrSuiChuan/dianjing) 配套:hualong 写正文,dianjing 出标题,合起来是"画龙点睛"。
+> 配套 skill:[dianjing](https://github.com/MrSuiChuan/dianjing) 出标题。hualong 画龙,dianjing 点睛,合起来是一句"画龙点睛"。
 
-## 它和普通写作提示词的区别
+## 它凭什么不一样
 
-**1. 动笔前必须问模式。**
-这是 skill 的第一条硬规则:技术文还是人文文,不问就不写。因为两种模式的段落节奏完全不同,混着写出来的东西两头不讨好。
+**1. 动笔前必须先问模式。**
+这是 skill 的第一条硬规则:技术文还是人文文,不问就不写。因为两种模式的段落节奏完全不同,混着写出来的东西两头不讨好——该细的地方一笔带过,该停的地方啰嗦半天。
 
 **2. 规则来自量化基线,不是感觉。**
-基调一样:**一段一句**(语料平均 1.1 句/段),差异在结构密度和长段占比——技术文每篇平均 5 个编号步骤、长段占 18%;人文文 0 个步骤、长段占 13%。中位段落长度其实几乎相同(32 字 vs 31 字),所以技术文不是通篇拉长,而是"短句铺垫 + 60–120 字的步骤解释段"。
+基调一样:**一段一句**(语料平均 1.1 句/段)。差异在结构密度和长段占比:技术文每篇平均 5 个编号步骤、长段占 18%;人文文 0 个步骤、长段占 13%。
+
+有个反直觉的结论:两种模式的**中位段落长度几乎相同**(32 字 vs 31 字)。所以技术文不是通篇拉长,而是"短句铺垫 + 60–120 字的步骤解释段";人文文全篇维持 20–50 字的呼吸。把技术文写成每段 80 字,或者把人文文写成一段一句到底,都是错的。
 
 **3. 交付前过两道机器检查。**
 
-- `scripts/style_check.py`:算段落中位、长段占比、句长、口语密度、句首重复率等,给一个 **人味分(0–100)**,交付线 85 分;
-- `scripts/overlap_check.py`:与参考语料做 12 字窗口比对,最长连续重合 ≥30 字判不合格——写长文最容易出的事故就是"顺手把参考文章里的句子搬进来"。
+| 检查 | 工具 | 判定 |
+| --- | --- | --- |
+| 人味分 | `scripts/style_check.py` | 0–100 分,**低于 85 必须回改**;真文章的中位数是 95 |
+| 重合检测 | `scripts/overlap_check.py` | 与语料 12 字窗口比对,**最长连续重合 ≥30 字判 FAIL** |
+
+人味分的扣分线来自语料 p95:句首重复率 >6%、同构句连排 >5 句、抽象名词 >6 个/千字、程度副词 >3.7 个/千字、被动句 >2.7 个/千字。一段典型的 AI 通稿只能拿到 40 分,并同时在段落中位、口语密度、开场段上不及格。
+
+**4. 素材门:没有的东西不许编。**
+技术文没有一手数据、截图、命令记录,就不许写"实测",只能降级成工具介绍并说明依据来源;人文文没有真实人物、对话、经历,就不许写"我有个朋友",改成观察文。
 
 ## 两种模式
 
@@ -30,13 +39,11 @@
 
 ## 安装
 
-克隆到 Codex 的 skills 目录即可:
-
 ```bash
 git clone https://github.com/MrSuiChuan/hualong.git ~/.codex/skills/hualong
 ```
 
-或直接拷贝本仓库到 `~/.codex/skills/hualong/`(Windows 是 `%USERPROFILE%\.codex\skills\hualong\`)。
+Windows 是 `%USERPROFILE%\.codex\skills\hualong\`,也可以直接拷目录。
 
 ## 用法
 
@@ -44,21 +51,29 @@ git clone https://github.com/MrSuiChuan/hualong.git ~/.codex/skills/hualong
 用 $hualong 帮我写一篇技术文,选题是……
 ```
 
-它会先问你要技术文还是人文文,再确认平台,然后走:素材门 → 骨架 → 起草 → 量化体检 → 重合检测 → 交付(需要标题时交给 `dianjing`)。
+它会先问模式,再确认平台,然后走完整流程:素材门 → 骨架 → 起草 → 量化体检 → 重合检测 → 交付(要标题时交给 `dianjing`)。
+
+自己检查草稿:
+
+```bash
+py -3 scripts/style_check.py 草稿.md --mode tech          # 技术文
+py -3 scripts/style_check.py 草稿.md --mode human         # 人文文
+py -3 scripts/overlap_check.py 草稿.md --corpus <语料目录> # 重合检测
+```
 
 ## 目录
 
 ```
-SKILL.md                    主指令:先问模式、素材门、工作流、自检门槛
-references/style-dna.md     共有文风的量化来源与节奏规律
-references/mode-tech.md     技术文结构模板与反例
-references/mode-human.md    人文文叙事节拍与反例
-references/rhetoric-bank.md 高频词与开场/过渡/收尾句式(带频次)
-references/anti-patterns.md 模型腔、通稿腔黑名单与改写示例
-references/exemplars.md     两种模式的示范文案 + 改写对照
-references/metrics-baseline.md 完整量化基线与重测方法
-scripts/style_check.py      草稿体检(人味分)
-scripts/overlap_check.py    与语料的重合检测
+SKILL.md                        主指令:先问模式、素材门、工作流、自检门槛
+references/style-dna.md         共有文风的量化来源与节奏规律
+references/mode-tech.md         技术文结构模板、步骤写法与反例
+references/mode-human.md        人文文叙事节拍、情绪落点与反例
+references/rhetoric-bank.md     高频词与开场/过渡/收尾句式(带频次)
+references/anti-patterns.md     模型腔、通稿腔、翻译腔黑名单与改写示例
+references/exemplars.md         两种模式的示范文案 + AI 味改写对照
+references/metrics-baseline.md  完整量化基线与重测方法
+scripts/style_check.py          草稿体检(人味分)
+scripts/overlap_check.py        与语料的重合检测
 ```
 
 ## 边界
@@ -67,8 +82,12 @@ scripts/overlap_check.py    与语料的重合检测
 - 不做标题量产,标题交给 `dianjing`;
 - 用户点名要随川风格、个人见解型长文时,改用其他写作 skill;
 - 不模仿语料里的具体句子、比喻和私人经历,只复用节奏与结构;
-- 素材门:没有一手数据不许写"实测",没有真实人物不许编故事。
+- 严肃机构文、学术文把口语密度从 15 降到 4–8,段落规则保留。
 
-## 说明
+## 数据与说明
 
-这是风格方法与工程化自检工具,不是爆款保证。节奏基线来自 621 篇已发表长文的统计,量化阈值用真文章自测校准过(硬规则通过率 88.7%);换语料或换作者请按 `references/metrics-baseline.md` 重测。
+节奏基线来自 621 篇已发表长文的统计,量化阈值用真文章自测校准过——**硬规则通过率 88.7%**,也就是说真文章里也有一成左右会被提示,属于风格边界样本。
+
+换语料、换作者、换平台,请按 `references/metrics-baseline.md` 重测,再改阈值。
+
+这是风格方法与工程化自检工具,不是爆款保证。
