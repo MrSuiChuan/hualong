@@ -230,6 +230,11 @@ def main():
     if not prose:
         print("[错误] 没解析到正文段落")
         sys.exit(2)
+    chars = sum(len(p) for p in prose)
+    if chars < 200:
+        print(f"[样本不足] 正文只有 {chars} 字,统计量没有意义,不给结论。")
+        print("           请至少写到 800 字再跑体检(语料文章的中位数是 2770 字)。")
+        sys.exit(3)
     m = measure(prose, steps)
     results = check(m, args.mode)
     ok = all(r[1] != "FAIL" for r in results)

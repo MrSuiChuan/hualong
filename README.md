@@ -18,7 +18,7 @@
 
 | 检查 | 工具 | 判定 |
 | --- | --- | --- |
-| 人味分 | `scripts/style_check.py` | 0–100 分,**低于 85 必须回改**;真文章的中位数是 95 |
+| 人味分 | `scripts/style_check.py` | 0–100 分(**按声明的模式算**),**低于 85 必须回改**;真文章中位 95,低于 85 的只占一成左右 |
 | 重合检测 | `scripts/overlap_check.py` | 与语料 12 字窗口比对,**最长连续重合 ≥30 字判 FAIL** |
 | 承诺兑现 | `scripts/promise_check.py` | 标题里的数字必须 100% 出现在正文;关键词覆盖率低于 45% 判不合格 |
 
@@ -77,6 +77,11 @@ py -3 scripts/style_check.py 草稿.md --mode tech          # 技术文
 py -3 scripts/style_check.py 草稿.md --mode human         # 人文文
 py -3 scripts/overlap_check.py 草稿.md --corpus <语料目录> # 重合检测
 ```
+
+两点说明:
+
+- **重合检测需要语料目录**。本仓库不含语料,没配 `--corpus` 时脚本会直接报错退出(不会假装通过);确实没有语料就写明"未做原创性比对",别跳过不提。
+- **Windows 控制台如果中文乱码**,先执行 `$env:PYTHONIOENCODING='utf-8'` 再跑脚本。
 
 ## 目录
 

@@ -69,11 +69,15 @@ def scan(draft_text, corpus_dir, min_report=8):
     if len(draft) < NGRAM:
         return 0, [], 0
     draft_grams = grams(draft)
-    files = sorted(Path(corpus_dir).rglob("*.md"))
+    root = Path(corpus_dir)
+    if not root.exists():
+        raise FileNotFoundError(f"语料目录不存在: {root}")
+    files = [fp for fp in sorted(root.rglob("*.md"))
+             if not fp.name.startswith("_") and not fp.name.lower().startswith("readme")]
+    if not files:
+        raise ValueError(f"语料目录里没有可比对的 .md 文件: {root}")
     hits = []
     for fp in files:
-        if fp.name.startswith("_") or fp.name.lower().startswith("readme"):
-            continue
         other = normalize(fp.read_text(encoding="utf-8"))
         if len(other) < NGRAM:
             continue
@@ -120,19 +124,23 @@ def main():
     if len(draft) < NGRAM:
         print("[错误] 草稿太短, 无法比对")
         sys.exit(2)
-    max_len, hits, n_files = scan(draft_raw, corpus_dir)
-    files = list(range(n_files))  # 仅用于下方计数输出
+    try:
+        max_len, hits, n_files = scan(draft_raw, corpus_dir)
+    except (FileNotFoundError, ValueError) as e:
+        print(f"[错误] {e}")
+        print("       没有语料就无法做重合检测;请在交付说明里写明'未做原创性比对'。")
+        sys.exit(2)
     ratio = (max_len / len(draft)) if max_len else 0.0
     verdict = verdict_for(max_len, len(draft))
 
     if args.json:
         print(json.dumps({"verdict": verdict, "max_match": max_len, "ratio": round(ratio, 5),
-                          "draft_chars": len(draft), "corpus_files": len(files),
+                          "draft_chars": len(draft), "corpus_files": n_files,
                           "hits": hits[:10]}, ensure_ascii=False, indent=2))
         sys.exit(0 if verdict == "PASS" else 1)
 
     lines = ["# 原创性检查", "",
-             f"- 草稿有效字数: {len(draft)}", f"- 比对语料: {len(files)} 篇",
+             f"- 草稿有效字数: {len(draft)}", f"- 比对语料: {n_files} 篇",
              f"- 最长重合片段: {max_len} 字", f"- 结论: {verdict}", ""]
     if hits:
         lines += ["| 重合长度 | 来源文件 | 片段(截断) |", "| --- | --- | --- |"]
