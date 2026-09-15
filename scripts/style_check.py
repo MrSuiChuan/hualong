@@ -222,6 +222,8 @@ def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("draft", help="草稿 markdown 路径")
     ap.add_argument("--mode", choices=["tech", "human"], required=True)
+    ap.add_argument("--target-chars", type=int, default=0,
+                    help="目标字数(可选)。给了就检查篇幅:低于目标 85% 记提醒,低于 60% 判不合格。")
     ap.add_argument("--report", help="把体检报告写到指定文件")
     ap.add_argument("--json", action="store_true", help="以 JSON 输出指标")
     args = ap.parse_args()
@@ -237,6 +239,17 @@ def main():
         sys.exit(3)
     m = measure(prose, steps)
     results = check(m, args.mode)
+    length_note = None
+    if args.target_chars:
+        ratio = m["chars"] / args.target_chars
+        if ratio < 0.6:
+            results.append(("字数达标", "FAIL", f"{m['chars']}/{args.target_chars}", f"≥{int(args.target_chars*0.6)}"))
+            length_note = "篇幅只有目标的一半上下,节奏指标会失真——先把该讲的讲完,再谈段落。"
+        elif ratio < 0.85:
+            results.append(("字数达标", "WARN", f"{m['chars']}/{args.target_chars}", f"≥{args.target_chars}"))
+            length_note = "比目标略短,检查一下是不是有该展开的细节被跳过了。"
+        else:
+            results.append(("字数达标", "OK", f"{m['chars']}/{args.target_chars}", f"≥{args.target_chars}"))
     ok = all(r[1] != "FAIL" for r in results)
     score, reasons = human_score(m, args.mode)
 
@@ -255,6 +268,8 @@ def main():
     for name, status, value, rng in results:
         lines.append(f"| {name} | {status} | {value} | {rng} |")
     tips = suggestions(m, args.mode, results)
+    if length_note:
+        tips.append(length_note)
     if score < 85 and not tips:
         tips.append("人味分偏低,重点看句首重复、同构句连排和抽象名词密度。")
     if tips:

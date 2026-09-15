@@ -56,6 +56,16 @@ Windows 是 `%USERPROFILE%\.codex\skills\hualong\`,也可以直接拷目录。
 
 它会先问模式,再确认平台,然后走完整流程:素材门 → 骨架 → 起草 → 量化体检 → 重合检测 → 交付(要标题时交给 `dianjing`)。
 
+**它还会问一句:这篇要写多少字。** 语料实测正文字数中位是 2770 字(技术锚 3414 / 人文锚 3061),没有目标字数就动笔,篇幅只能交给运气——实测过一篇 876 字的稿子,人味分拿了 100,却不到人文锚中位的三成。
+
+| 档位 | 字数 | 适用 |
+| --- | --- | --- |
+| 短篇 | 1200–1500 | 单点观点、复盘、快评 |
+| 标准 | 2000–3000 | 多数教程与人物观察(≈语料中位) |
+| 长篇 | 3500+ | 系统教程、深度拆解 |
+
+没概念可以让它定:技术文默认 3000 字,人文文默认 2800 字。
+
 ## 和 dianjing 怎么配合
 
 正文定稿后,它会按 `references/handoff.md` 的契约产出 `title-brief`(选题 / 平台 / 读者 / 正文模式 / 人味分 / 3 个钩子及出处 / 可核查数字 / 核心立场 / 不能碰的表述),交给 [dianjing](https://github.com/MrSuiChuan/dianjing) 出标题。
@@ -73,10 +83,12 @@ Windows 是 `%USERPROFILE%\.codex\skills\hualong\`,也可以直接拷目录。
 自己检查草稿:
 
 ```bash
-py -3 scripts/style_check.py 草稿.md --mode tech          # 技术文
-py -3 scripts/style_check.py 草稿.md --mode human         # 人文文
+py -3 scripts/style_check.py 草稿.md --mode tech --target-chars 3000    # 技术文
+py -3 scripts/style_check.py 草稿.md --mode human --target-chars 2800   # 人文文
 py -3 scripts/overlap_check.py 草稿.md --corpus <语料目录> # 重合检测
 ```
+
+给了 `--target-chars` 就会检查篇幅:低于目标 85% 记提醒,低于 60% 判不合格(节奏指标在过短的稿子里会失真)。
 
 两点说明:
 
