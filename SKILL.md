@@ -73,7 +73,8 @@ description: 用「短句 + 长短交替」的长文节奏写中文推文,分技
 6. **原创性检查**:`py -3 scripts/overlap_check.py <草稿.md> --corpus <语料目录>`。
    最长重合 ≥30 字直接判 FAIL,必须重写:换句式、换叙述顺序、换角度,不能只改标点或换同义词。
    这一步不能省——语料里最像的句子,恰恰是模型最容易顺手搬的句子。
-7. **交付 + 交给 dianjing 定标题**:正文定稿后,先把正文里的钩子、关键数字、那句判断列成 3 条,连同选题一起交给 `dianjing`——标题必须兑现正文的钩子,不要在本 skill 里现编标题。
+7. **交付 + 交给 dianjing 定标题**:正文定稿后,按 `references/handoff.md` 的契约产出一份 `title-brief`(选题 / 平台 / 读者 / 正文模式 / 人味分 / 3 个钩子及其出处 / 可核查数字 / 核心立场 / 不能碰的表述),连同正文一起交给 `dianjing`。标题必须兑现正文,不要在本 skill 里现编标题。
+8. **回环校验**(标题先行或改过标题时):用 `py -3 scripts/promise_check.py --title "标题" --body 正文.md` 复核。标题里的数字必须 100% 在正文出现,关键词覆盖率低于 45% 判不合格——要么改标题,要么补正文。
 
 ## 自检硬门槛
 
@@ -112,8 +113,10 @@ description: 用「短句 + 长短交替」的长文节奏写中文推文,分技
 - `references/anti-patterns.md` — 模型腔、通稿腔、翻译腔黑名单与改写示例
 - `references/exemplars.md` — 技术文/人文文示范文案(带段长标注)+ AI 味改写对照
 - `references/metrics-baseline.md` — 完整量化基线与重测方法
+- `references/handoff.md` — 与 dianjing 的交接契约(title-brief 格式与验收线)
 - `scripts/style_check.py` — 草稿量化体检工具
 - `scripts/overlap_check.py` — 与语料的重合检测(原创性检查)
+- `scripts/promise_check.py` — 标题承诺兑现检测(标题 × 正文)
 
 ## 边界
 

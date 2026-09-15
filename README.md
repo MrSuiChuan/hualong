@@ -20,8 +20,11 @@
 | --- | --- | --- |
 | 人味分 | `scripts/style_check.py` | 0–100 分,**低于 85 必须回改**;真文章的中位数是 95 |
 | 重合检测 | `scripts/overlap_check.py` | 与语料 12 字窗口比对,**最长连续重合 ≥30 字判 FAIL** |
+| 承诺兑现 | `scripts/promise_check.py` | 标题里的数字必须 100% 出现在正文;关键词覆盖率低于 45% 判不合格 |
 
 人味分的扣分线来自语料 p95:句首重复率 >6%、同构句连排 >5 句、抽象名词 >6 个/千字、程度副词 >3.7 个/千字、被动句 >2.7 个/千字。一段典型的 AI 通稿只能拿到 40 分,并同时在段落中位、口语密度、开场段上不及格。
+
+**说明:人味分是交付质量指标,不是传播预测指标。** 实测人味分与点赞的相关性只有 0.139,段落中位、口语密度、长段占比也都在 ±0.05 以内——它保证稿子读起来像人写的,不保证它会被点开。
 
 **4. 素材门:没有的东西不许编。**
 技术文没有一手数据、截图、命令记录,就不许写"实测",只能降级成工具介绍并说明依据来源;人文文没有真实人物、对话、经历,就不许写"我有个朋友",改成观察文。
@@ -53,6 +56,18 @@ Windows 是 `%USERPROFILE%\.codex\skills\hualong\`,也可以直接拷目录。
 
 它会先问模式,再确认平台,然后走完整流程:素材门 → 骨架 → 起草 → 量化体检 → 重合检测 → 交付(要标题时交给 `dianjing`)。
 
+## 和 dianjing 怎么配合
+
+正文定稿后,它会按 `references/handoff.md` 的契约产出 `title-brief`(选题 / 平台 / 读者 / 正文模式 / 人味分 / 3 个钩子及出处 / 可核查数字 / 核心立场 / 不能碰的表述),交给 [dianjing](https://github.com/MrSuiChuan/dianjing) 出标题。
+
+| 场景 | 路径 |
+| --- | --- |
+| 只写正文 | hualong 交付正文 + `title-brief` |
+| 完整链路 | hualong 写正文 → title-brief → dianjing 出 10 条 → `promise_check` 核验 Top3 → 发布 |
+| 标题先行 | 先出标题草稿 → 用标题反推正文骨架 → 正文写完跑 `promise_check` 回环校验 |
+
+这是实测里唯一有正向信号的环节:标题与正文的一致性(关键词覆盖率与点赞相关性 0.183),高于标题词法(0.09)和正文风格(0.14)。
+
 自己检查草稿:
 
 ```bash
@@ -72,8 +87,10 @@ references/rhetoric-bank.md     高频词与开场/过渡/收尾句式(带频次
 references/anti-patterns.md     模型腔、通稿腔、翻译腔黑名单与改写示例
 references/exemplars.md         两种模式的示范文案 + AI 味改写对照
 references/metrics-baseline.md  完整量化基线与重测方法
+references/handoff.md           与 dianjing 的交接契约(title-brief 与验收线)
 scripts/style_check.py          草稿体检(人味分)
 scripts/overlap_check.py        与语料的重合检测
+scripts/promise_check.py        标题承诺兑现检测(标题 × 正文)
 ```
 
 ## 边界
